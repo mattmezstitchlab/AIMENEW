@@ -1,0 +1,424 @@
+/* Interface d'édition — jamais publiée avec la page. */
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+}
+
+body {
+  font-family: var(--font-text);
+}
+
+body.is-dragging {
+  cursor: grabbing;
+  user-select: none;
+}
+
+.aime-stage {
+  min-height: calc(100dvh - 58px);
+}
+
+/* ─── Barre du haut ─────────────────────────────────────────────────────── */
+
+.aime-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+  min-height: 58px;
+  padding: 10px 16px;
+  background: color-mix(in srgb, var(--bg) 84%, transparent);
+  backdrop-filter: blur(16px) saturate(1.2);
+  -webkit-backdrop-filter: blur(16px) saturate(1.2);
+  border-bottom: 1px solid var(--line);
+  color: var(--ink);
+  font-size: 13px;
+}
+
+.aime-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  font-size: 12px;
+}
+
+.aime-brand__orb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--iris);
+  box-shadow: 0 0 18px -2px color-mix(in srgb, var(--accent) 70%, transparent);
+}
+
+.aime-brand small {
+  color: var(--muted);
+  font-weight: 500;
+  letter-spacing: 0.1em;
+}
+
+.aime-title {
+  flex: 1 1 160px;
+  min-width: 120px;
+  max-width: 320px;
+  padding: 6px 8px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-family: var(--font-display);
+  font-size: 15px;
+}
+
+.aime-title:hover,
+.aime-title:focus {
+  border-color: var(--line);
+  outline: none;
+}
+
+.aime-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.aime-spacer {
+  flex: 1;
+}
+
+.aime-btn,
+.aime-seg button,
+.aime-menu summary,
+.aime-menu button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 10px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--surface);
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.aime-btn:hover:not(:disabled),
+.aime-seg button:hover,
+.aime-menu summary:hover {
+  border-color: color-mix(in srgb, var(--accent) 55%, var(--line));
+}
+
+.aime-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.aime-btn__icon {
+  display: inline-grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 5px;
+  background: var(--surface-2);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.aime-seg {
+  display: inline-flex;
+  padding: 2px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+}
+
+.aime-seg button {
+  border: 0;
+  background: transparent;
+  padding: 6px 10px;
+  color: var(--muted);
+}
+
+.aime-seg button[aria-pressed='true'] {
+  background: var(--ink);
+  color: var(--bg);
+}
+
+.aime-menu {
+  position: relative;
+}
+
+.aime-menu summary {
+  list-style: none;
+}
+
+.aime-menu summary::-webkit-details-marker {
+  display: none;
+}
+
+.aime-menu__panel {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  display: grid;
+  gap: 2px;
+  min-width: 230px;
+  padding: 6px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.aime-menu__panel button {
+  justify-content: flex-start;
+  border: 0;
+  background: transparent;
+}
+
+.aime-menu__panel button:hover {
+  background: var(--surface-2);
+}
+
+.aime-status {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.aime-status.is-error {
+  color: #ff8a8a;
+}
+
+.is-viewing [data-edit-only] {
+  display: none !important;
+}
+
+/* ─── Sélection, poignées, repères ──────────────────────────────────────── */
+
+.is-edit .aime-cell:not(.aime-cell--root):hover {
+  outline: 1px dashed color-mix(in srgb, var(--accent) 50%, transparent);
+  outline-offset: 5px;
+  border-radius: 4px;
+}
+
+.is-edit .aime-cell.is-selected:not(.aime-cell--root) {
+  outline: 1.5px solid var(--accent);
+  outline-offset: 5px;
+  border-radius: 4px;
+  z-index: 10;
+}
+
+.is-edit .aime-cell.is-dragging {
+  opacity: 0.88;
+  z-index: 30;
+  transition: none;
+}
+
+.is-edit .aime-cell {
+  transition: opacity 120ms ease;
+}
+
+.is-edit .b-text:focus {
+  caret-color: var(--accent);
+}
+
+.is-edit .aime-grid:not(:has(> .aime-cell)) {
+  min-height: var(--row-h, 56px);
+}
+
+.aime-handle {
+  position: absolute;
+  z-index: 15;
+  display: none;
+  padding: 0;
+  border: 0;
+  touch-action: none;
+}
+
+.aime-cell.is-selected > .aime-handle {
+  display: block;
+}
+
+.aime-handle--move {
+  top: -17px;
+  left: -17px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--iris);
+  box-shadow: 0 0 0 3px var(--bg), var(--shadow);
+  cursor: grab;
+}
+
+.aime-handle--move::after {
+  content: '';
+  position: absolute;
+  inset: 8px;
+  border-radius: 50%;
+  background: var(--bg);
+  opacity: 0.7;
+}
+
+.aime-handle--resize {
+  right: -11px;
+  bottom: -11px;
+  width: 16px;
+  height: 16px;
+  border-radius: 5px;
+  background: var(--ink);
+  box-shadow: 0 0 0 3px var(--bg);
+  cursor: nwse-resize;
+}
+
+/* Zone tactile plus large que le visuel. */
+.aime-handle::before {
+  content: '';
+  position: absolute;
+  inset: -10px;
+}
+
+.aime-guides {
+  position: absolute;
+  inset: 0;
+  display: none;
+  grid-template-columns: repeat(var(--cols, 12), minmax(0, 1fr));
+  gap: var(--gap, 16px);
+  pointer-events: none;
+}
+
+.aime-guides span {
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--accent) 9%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 14%, transparent);
+}
+
+.aime-grid.is-guiding > .aime-guides,
+.aime-cell.is-selected > .b-container > .aime-grid > .aime-guides {
+  display: grid;
+}
+
+/* ─── Barre du bloc sélectionné ─────────────────────────────────────────── */
+
+.aime-blockbar {
+  position: absolute;
+  left: -6px;
+  bottom: calc(100% + 16px);
+  z-index: 40;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px;
+  width: max-content;
+  max-width: min(92vw, 640px);
+  padding: 4px;
+  border-radius: 11px;
+  background: var(--ink);
+  color: var(--bg);
+  box-shadow: var(--shadow);
+  font: 500 12px/1 var(--font-text);
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.aime-blockbar.is-below {
+  bottom: auto;
+  top: calc(100% + 16px);
+}
+
+.aime-blockbar__label {
+  padding: 6px 8px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 10px;
+  opacity: 0.6;
+}
+
+.aime-blockbar__sep {
+  width: 1px;
+  height: 18px;
+  margin: 0 3px;
+  background: color-mix(in srgb, var(--bg) 25%, transparent);
+}
+
+.aime-blockbar button,
+.aime-blockbar .aime-blockbar__file {
+  padding: 7px 9px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.aime-blockbar button:hover,
+.aime-blockbar .aime-blockbar__file:hover,
+.aime-blockbar button[aria-pressed='true'] {
+  background: color-mix(in srgb, var(--bg) 18%, transparent);
+}
+
+.aime-blockbar button.is-danger:hover {
+  background: #d9465a;
+  color: #fff;
+}
+
+.aime-blockbar__static {
+  padding: 7px 4px;
+  opacity: 0.75;
+}
+
+.aime-blockbar__field {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 4px 0 8px;
+  opacity: 0.95;
+}
+
+.aime-blockbar__field input {
+  width: 150px;
+  padding: 6px 8px;
+  border: 0;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--bg) 14%, transparent);
+  color: inherit;
+  font: inherit;
+}
+
+.aime-blockbar__field input:focus {
+  outline: 1.5px solid var(--accent);
+}
+
+.aime-blockbar__file input {
+  display: none;
+}
+
+/* Mobile : une barre compacte, la page d'abord. */
+@media (max-width: 640px) {
+  .aime-topbar {
+    gap: 6px 8px;
+    padding: 8px 12px;
+  }
+  .aime-brand small,
+  .aime-btn__label,
+  .aime-status {
+    display: none;
+  }
+  .aime-title {
+    flex-basis: 100px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+  }
+}

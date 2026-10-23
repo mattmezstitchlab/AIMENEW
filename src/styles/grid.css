@@ -1,0 +1,40 @@
+/*
+ * Le moteur de grille. C'est la seule « loi physique » du système.
+ * Chaque grille définit ses colonnes ; chaque cellule y est placée par
+ * quatre variables : --c (colonne), --r (ligne), --cs et --rs (étendues).
+ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+.aime-grid {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(var(--cols, 12), minmax(0, 1fr));
+  grid-auto-rows: minmax(var(--row-h, 56px), auto);
+  gap: var(--gap, 16px);
+  /* Chaque grille réagit à SA largeur, pas à celle de l'écran : un conteneur étroit se replie même sur grand écran. */
+  container-type: inline-size;
+}
+
+.aime-cell {
+  position: relative;
+  min-width: 0;
+  grid-column: var(--c, 1) / span var(--cs, 1);
+  grid-row: var(--r, 1) / span var(--rs, 1);
+}
+
+.aime-cell > .aime-block {
+  height: 100%;
+}
+
+/* Grille étroite : une seule colonne, dans l'ordre de lecture. */
+@container (max-width: 600px) {
+  .aime-cell {
+    grid-column: 1 / -1;
+    grid-row: auto;
+  }
+}
